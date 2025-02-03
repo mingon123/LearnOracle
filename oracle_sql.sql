@@ -20,7 +20,7 @@ SELECT 7 + 10 FROM dual;
 SELECT ASCII('A') FROM dual;
 SELECT ASCII(0) FROM dual;
 
-산술식:산술연산자(+,-,*,/)를 사용하여 숫자 및 날짜 데이터로 표현식을 작성
+산술식 : 산술연산자(+,-,*,/)를 사용하여 숫자 및 날짜 데이터로 표현식을 작성
 SELECT ename,sal,sal + 300 FROM emp;
 
 연산자 우선순위
