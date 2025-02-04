@@ -212,4 +212,3 @@ SELECT TO_CHAR(1234,'L0000') FROM dual;
 
 
 
-
