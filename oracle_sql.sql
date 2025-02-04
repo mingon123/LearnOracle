@@ -51,7 +51,7 @@ SELECT sal*12 "Annual Salary" FROM emp; --공백이 있으면 에러가 생김, 큰따옴표를 
 열이나 문자열을 다른 열에 연결
 두 개의 세로선(||)으로 나타냄 --java에서의 +와 같은 기능
 
-select ename || ' has $' || sal FROM emp;
+SELECT ename || ' has $' || sal FROM emp;
 
 distinct : 중복행 삭제
 SELECT deptno FROM emp;
@@ -402,7 +402,7 @@ SELECT TO_CHAR(1234) FROM dual; --1234
 실제 자리수보다 많은 자리수 지정
 SELECT TO_CHAR(1234,99999) FROM dual; -- 1234(값 앞에 공백한칸 출력)
 SELECT TO_CHAR(1234,'99999') FROM dual; -- 1234
-SELECT TO_CHAR(1234,'00000') FROM dual --01234
+SELECT TO_CHAR(1234,'00000') FROM dual; --01234
 
 소수점 자리
 SELECT TO_CHAR(1234,9999.99) FROM dual; --1234.00
@@ -420,7 +420,206 @@ SELECT TO_CHAR(1234,'$0000') FROM dual;
 지역통화 표시(원)
 SELECT TO_CHAR(1234,'L0000') FROM dual;
 
+TO_DATE -- 문자 -> 날짜
+SELECT TO_DATE('25-02-04','YYYY-MM-DD') FROM dual; --25/02/04
+포맷 형식 생략 가능
+SELECT TO_DATE('25-02-04') FROM dual;
 
+TO_NUMBER --문자 -> 숫자
+SELECT TO_NUMBER('100',999) FROM dual;
+포맷 형식 생략 가능
+SELECT TO_NUMBER('200') FROM dual;
+
+
+
+일반함수
+
+***(NVL암기)
+NVL(value1,value2) : value1이 null이면 value2를 사용. value1과 value2의 자료형이 일치해야함
+SELECT ename,sal,comm, sal+NVL(comm,0) 실급여 FROM emp;
+
+SELECT ename,NVL(TO_CHAR(comm),'No Commission') "COMM." FROM emp;
+
+NVL2(value1,value2,value3) : value1이 null인지 평가. null이면 value3, null이 아니면 value2. 자료형이 일치하지 않아도 됨.
+
+SELECT ename,job,NVL2(comm,'commission','no commission') FROM emp;
+
+NULLIF(value1,value2) : 두 개의 값이 일치하면 null, 두 개의 값이 일치하지 않으면 value1
+SELECT NULLIF(LENGTH(ename),LENGTH(job)) "NULLIF" FROM emp;
+
+COALESCE(value1,value2,value3,...) : null값이 아닌 값을 사용(자료형 일치)
+SELECT comm,mgr,sal, COALESCE(comm,mgr,sal) FROM emp;
+
+
+***(암기)CASE : 조건 제어가 가능한 함수
+CASE 컬럼 WHEN 비교값 THEN 결과값
+         WHEN 비교값 THEN 결과값
+         WHEN 비교값 THEN 결과값
+         (ELSE 결과값)
+END;
+
+SELECT ename,sal,job,
+       CASE job WHEN 'SALESMAN' THEN sal*0.1
+                WHEN 'MANAGER' THEN sal*0.2
+                WHEN 'ANALYST' THEN sal*0.3
+                ELSE sal*0.4
+        END "Bonus"
+FROM EMP;
+
+SELECT ename,sal,job,
+       CASE WHEN sal>=4000 AND sal<=5000 THEN 'A'
+            WHEN sal>=3000 AND sal<4000 THEN 'B'
+            WHEN sal>=2000 AND sal<3000 THEN 'C'
+            WHEN sal>=1000 AND sal<2000 THEN 'D'
+            ELSE 'F'
+       END "Grade"
+FROM emp ORDER BY sal DESC;
+
+DECODE(오라클 전용) : = 비교만 가능
+DECODE(컬럼,비교값,반환값,
+            비교값,반환값,
+            비교값,반환값,
+            반환값)
+            
+SELECT ename,sal,job,
+       DECODE(job,'SALESMAN',sal*0.1,
+                  'MANAGER', sal*0.2,
+                  'ANALYST', sal*0.3,
+                  sal*0.4) "Bonus"
+FROM emp;
+
+SELECT ename,sal,job,
+        DECODE(TRUNC(sal/1000),5,'A',
+                               4,'A',
+                               3,'B',
+                               2,'C',
+                               1,'D',
+                               'F') "Grade"
+FROM emp ORDER BY sal DESC;
+
+특정 컬럼의 특정값을 먼저 오게 정렬하는 방법
+ORDER BY (CASE 컬럼명 WHEN 비교값 THEN 1(순서)
+                     WHEN 비교값 THEN 2
+                     ELSE 3
+          END)
+
+사번으로 정렬하는데 7698인 경우는 가장 먼저 정렬
+SELECT empno,ename,sal FROM emp 
+ORDER BY (CASE empno WHEN 7698 THEN 1
+          END),empno;
+
+[실습문제]
+1.사원이름,월급,월급과 커미션을 더한 값을 컬럼명 실급여라고 해서 출력하시오.
+  단, null값은 나타나지 않게 작성하시오.
+SELECT ename,sal,sal+NVL(comm,0) 실급여 FROM emp;
+
+2.월급과 커미션을 합친 금액이 2,000이상인 급여를 받는 사원의 이름,업무,월급,커미션,고용날짜를 출력하시오.
+  단, 고용날짜는 1980-12-17 형식으로 출력하시오.
+SELECT ename,job,sal,comm,TO_CHAR(hiredate,'YYYY-MM-DD') AS hiredate FROM emp WHERE sal+NVL(comm,0)>=2000;
+
+3.DECODE 함수를 사용하여 다음 데이터에 따라 JOB열의 값을 기준으로 모든 사원의 등급을 표시하시오.
+  업무     등급
+  PRESIDENT A
+  ANALYST   B
+  MANAGER   C
+  SALESMAN  D
+  CLERK    E
+  기타      0(영)
+SELECT ename, job, 
+       DECODE(job,'PRESIDENT','A',
+                  'ANALYST','B',
+                  'MANAGER','C',
+                  'SALESMAN','D',
+                  'CLERK','E',
+                  '0') "Grade"
+FROM emp ORDER BY "Grade";
+
+[실습문제]
+1.관리자번호(mgr)가 없는 모든 사원의 이름과 업무를 표시하시오.(king)
+SELECT ename,job FROM emp WHERE mgr IS NULL;
+
+2.커미션 항목이 입력된 사원들의 이름과 급여,커미션을 구하시오.
+SELECT ename,sal,comm FROM emp WHERE comm IS NOT NULL;
+
+3.이름의 글자수가 6자 이상인 사원의 이름을 소문자로 이름만 출력하시오.
+SELECT LOWER(ename) FROM emp WHERE LENGTH(ename)>=6;
+
+4.각 사원의 이름을 표시하고 근무 달 수(입사일로부터 현재까지의 달 수)를 계산하여 열 레이블을 MONTHS_WORKED로 지정하시오.
+  결과는 정수로 반올림하여 표시하고 근무달 수를 기준으로 오름차순으로 정렬하시오.
+SELECT ename, ROUND(MONTHS_BETWEEN(SYSDATE,hiredate)) AS MONTHS_WORKED FROM emp ORDER BY MONTHS_WORKED;
+
+5.이름(소문자로 표시),업무,근무연차를 출력하시오.
+SELECT LOWER(ename),job,TRUNC(MONTHS_BETWEEN(SYSDATE,hiredate)/12) AS "근무연차" FROM emp;
+
+
+그룹함수 : 행 집합 연산을 수행하여 그룹별로 하나의 결과를 산출
+AVG() : NULL을 제외한 모든 값들의 평균을 반환. NULL값은 평균 계산에서 무시됨.
+SELECT ROUND(AVG(sal)) FROM emp;
+
+COUNT() : NULL을 제외한 값을 가진 모든 레코드의 수를 반환. COUNT(*)형식을 사용하면 NULL도 계산에 포함.
+
+SELECT COUNT(*) FROM emp;
+SELECT COUNT(comm) FROM emp;
+
+MAX() : 레코드 내에 있는 여러값 중 가장 큰 값을 반환
+SELECT MAX(sal) FROM emp;
+SELECT MAX(ename) FROM emp; --사전순으로 가장 마지막
+SELECT MAX(hiredate) FROM emp;
+
+MIN() : 레코드 내에 있는 여러값 중 가장 작은 값을 반환
+SELECT MIN(sal) FROM emp;
+SELECT MIN(ename) FROM emp; --사전순으로 가장 앞
+SELECT MIN(hiredate) FROM emp;
+
+SUM() : 레코드들이 포함하고 있는 모든 값을 더하여 반환
+SELECT SUM(sal) FROM emp;
+
+SELECT MAX(sal),MIN(sal),ROUND(AVG(sal)),SUM(sal) FROM emp;
+SELECT MAX(sal),MIN(sal),ROUND(AVG(sal)),SUM(sal) FROM emp WHERE deptno = 10;
+SELECT COUNT(*) FROM emp WHERE deptno=20; --사원수라고도 할 수 있음
+SELECT COUNT(empno) FROM emp WHERE deptno=30; --null값이 있는 컬럼은 제대로 안나옴
+
+
+GROUP BY & HAVING
+
+SELECT에서 집합함수(그룹함수) 적용시 개별 컬럼을 지정할 수 없다.
+개별 컬럼을 지정할 경우에는 반드시 GROUP BY절에 지정된 컬럼만 가능
+SELECT deptno,MAX(sal) FROM emp; --두 테이블이 행의 수가 달라서 오류가 생김
+SELECT deptno,MAX(sal) FROM emp GROUP BY deptno;
+SELECT deptno,COUNT(*) FROM emp GROUP BY deptno;
+
+다중 열에서 GROUP BY절 사용
+SELECT deptno,job,SUM(sal) FROM emp GROUP BY deptno,job ORDER BY deptno;
+
+그룹 처리 결과를 제한하고자 할 때 having절 이용
+- WHERE절에는 집합함수를 사용할 수 없고 HAVING절 사용
+
+오류 발생
+SELECT deptno,ROUND(AVG(sal)) FROM emp WHERE ROUND(AVG(sal))>2000 GROUP BY deptno;
+--WHERE절에서 그룹함수 못씀. HAVING절을 사용해야 함.
+
+정상 구문
+SELECT deptno,ROUND(AVG(sal)) FROM emp GROUP BY deptno HAVING ROUND(AVG(sal))>2000;
+
+HAVING절의 이용 : 알리아스 사용 X
+SELECT deptno,MAX(sal) maximum FROM emp GROUP BY deptno HAVING MAX(sal)>3000;--maximum>3000; ALIAS 안됨
+
+
+[숙제]
+1.사원명과 업무를 쉼표(,)로 연결해서 표시하고 컬럼명은 Employee and Job으로 표시하시오.
+SELECT ename||','||job "Employee and Job" FROM emp;
+
+2.30번 부서에서 근무하며 월2,000달러 이하를 받는 81년05월01일 이전에 입사한 사원의 이름,급여,부서번호,입사일을 출력하시오.
+SELECT ename,sal,deptno,hiredate FROM emp WHERE deptno=30 AND sal<=2000 AND hiredate<'81/05/01'; 
+
+3.이름에 A와 E가 있는 모든 사원의 이름을 표시하시오.
+SELECT ename FROM emp WHERE ename LIKE '%A%' OR ename LIKE '%E%';
+
+4.사원이름 중 S가 포함되지 않은 사람들 중 부서번호가 20번인 사원들의 이름과 부서번호를 출력하시오.
+SELECT ename,deptno FROM emp WHERE ename NOT LIKE '%S%' AND deptno=20;
+
+5.모든 사원의 이름과 급여를 표시하는데 급여는 15자 길이로 왼쪽에 $기호가 채워진 형식으로 표기하고 열 레이블을 SALARY로 지정하시오.
+SELECT ename,RPAD('$'||sal, 15) SALARY FROM emp;
 
 
 
