@@ -737,21 +737,105 @@ SELF JOIN
 SELECT e.ename 사원이름,m.ename 관리자이름 FROM emp e,emp m WHERE e.mgr=m.empno; --e:사원정보,m:관리자번호
 
 
+외부 조인(OUTER JOIN)
+Equi JOIN 문장들의 한 가지 제약점은 그것들이 조인을 생성하려 하는 두 개의 테이블의 두 개 컬럼에서 공통된 값이 없다면 테이블로부터 데이터를 반환하지 않는다는 것.
+누락된 행을 보기 위해서는 Outer Join을 사용
+
+누락된 행의 반대 테이블의 조인 조건의 컬럼에 (+)기호 표시
+SELECT DISTINCT e.deptno,d.deptno FROM emp e,dept d WHERE e.deptno(+)=d.deptno;
+
+사원이름과 해당 사원의 관리자 이름구하기(관리자가 없는 사원도 표시)
+SELECT e.ename 사원이름,m.ename 관리자이름 FROM emp e,emp m WHERE e.mgr=m.empno(+); --누락행의 반대테이블
 
 
+[표준 SQL]
+내부 조인(INNER JOIN)
+SELECT e.ename,d.deptno FROM emp e INNER JOIN dept d ON e.deptno=d.deptno;
+SELECT e.ename,d.deptno FROM emp e JOIN dept d ON e.deptno=d.deptno;
+
+JOIN 사용시 ON절을 정의하고 부가적인 조건이 있으면 WHERE절 사용
+SELECT e.ename,d.dname FROM emp e JOIN dept d ON e.deptno=d.deptno WHERE e.ename='ALLEN';
+--JOIN : 내부조건, ON : 조인조건, WHERE : 부가조건
+
+만약 조인 조건에 사용된 컬럼의 이름이 같다면 다음과 같이 USING절을 사용하여 조인 조건을 정의할 수 있다.
+SELECT e.ename,d.dname FROM emp e JOIN dept d USING(deptno) WHERE e.ename='ALLEN';
+
+[주의]USING에 사용된 컬럼은 테이블명 또는 테이블알리아스를 붙이지 않음
+SELECT e.ename,deptno FROM emp e JOIN dept d USING(deptno); --오류: ALIAS사용X, USING명령어로 하나로 합침
+
+JOIN할 때 하나의 테이블에만 존재하는 컬럼은 테이블명 또는 테이블 알리아스를 붙이지 않아도 식별 가능
+SELECT ename,deptno,dname FROM emp JOIN dept USING(deptno);
 
 
+SELF JOIN
+사원 이름과 해당 사원의 관리자 이름 구하기(관리자가 없는 사원읜 제외)
+SELECT e.ename name,m.ename manager_name FROM emp e JOIN emp m ON e.mgr = m.empno; --USING 사용 불가
 
 
+외부 조인(OUTER JOIN)
+누락된 행의 방향 표시 --한눈에 보기 쉬워 좋음
+SELECT DISTINCT(e.deptno),d.deptno FROM emp e RIGHT OUTER JOIN dept d ON e.deptno=d.deptno; --_1로 누락된거 확인하고 RIGHT OUTER 추가하여 빈 컬럼도 추가
+
+사원 이름과 해당 사원의 관리자 이름 구하기(관리자가 없는 사원도 표시)
+SELECT e.ename name,m.ename manager_name FROM emp e LEFT OUTER JOIN emp m ON e.mgr=m.empno;
+
+[실습문제]
+1.모든 사원의 이름,부서번호,부서이름을 표시하시오.(emp,dept)
+SELECT e.ename,e.deptno,d.dname FROM emp e,dept d WHERE e.deptno=d.deptno; --오라클전용
+
+SELECT e.ename,d.deptno,d.dname FROM emp e JOIN dept d ON e.deptno=d.deptno; --표준SQL
+SELECT ename,deptno,dname FROM emp JOIN dept USING(deptno); --표준SQL
+
+2.업무가 MANAGER인 사원의 정보를 이름,업무,부서명,근무지 순으로 출력하시오.(emp,dept)
+SELECT e.ename,e.job,d.dname,d.loc FROM emp e,dept d WHERE e.deptno=d.deptno AND e.job='MANAGER'; --오라클전용
+
+SELECT e.ename,e.job,d.dname,d.loc FROM emp e JOIN dept d ON e.deptno=d.deptno WHERE e.job='MANAGER'; --표준SQL
+SELECT ename,job,dname,loc FROM emp e JOIN dept USING(deptno) WHERE job='MANAGER';
+
+3.커미션을 받고 급여가 1,600이상인 사원의 사원이름,급여,부서명,근무지를 출력하시오.
+SELECT e.ename,e.sal,d.dname,d.loc FROM emp e,dept d WHERE e.deptno=d.deptno AND e.comm IS NOT NULL AND e.sal>=1600; --오라클전용
+
+SELECT e.ename,e.sal,d.dname,d.loc FROM emp e JOIN dept d ON e.deptno=d.deptno WHERE e.comm IS NOT NULL AND e.sal>=1600; --표준SQL
+SELECT ename,sal,dname,loc FROM emp JOIN dept USING(deptno) WHERE comm IS NOT NULL AND sal>=1600;
+
+4.근무지(LOC)가 CHICAGO인 모든 사원의 이름,업무,부서번호 및 부서이름을 표시하시오.
+SELECT e.ename,e.job,d.deptno,d.dname FROM emp e,dept d WHERE e.deptno=d.deptno AND d.loc='CHICAGO'; --오라클전용
+
+SELECT e.ename,e.job,d.deptno,d.dname FROM emp e JOIN dept d ON e.deptno=d.deptno WHERE d.loc='CHICAGO'; --표준SQL
+SELECT ename,job,deptno,dname FROM emp JOIN dept USING(deptno) WHERE loc='CHICAGO';
 
 
+5.근무지(LOC)별로 근무하는 사원의 수가 5명 이하인 경우,인원이 적은 도시 순으로 정렬하시오.(근무 인원이 0명인 곳도 표시)
+SELECT d.loc,COUNT(e.empno) emp_member FROM emp e,dept d WHERE e.deptno(+)=d.deptno GROUP BY d.loc HAVING COUNT(e.empno)<=5 ORDER BY emp_member; --오라클전용
 
+SELECT d.loc,COUNT(e.empno) emp_member FROM emp e RIGHT OUTER JOIN dept d ON e.deptno=d.deptno GROUP BY d.loc HAVING COUNT(e.empno)<=5 ORDER BY emp_member; --표준SQL
+SELECT loc,COUNT(empno) emp_member FROM emp RIGHT OUTER JOIN dept USING(deptno) GROUP BY loc HAVING COUNT(empno)<=5 ORDER BY emp_member;
 
+6.사원의 이름 및 사원 번호를 관리자의 이름과 관리자 번호와 함께 표시하고 각각의 열 레이블은 employee,emp#,manager,mgr#로 지정하시오.(관리자가 없는 사원 미출력)
+SELECT e.ename "employee",e.empno "emp#",m.ename "manager",e.mgr "mgr#" FROM emp e, emp m WHERE m.empno=e.mgr; --오라클전용
 
+SELECT e.ename "employee",e.empno "emp#",m.ename "manager",e.mgr "mgr#" FROM emp e INNER JOIN emp m ON m.empno=e.mgr; --표준SQL
 
+7.관리자보다 먼저 입사한 모든 사원의 이름, 사원 입사일, 관리자의 이름, 관리자 입사일과 함께 표시하고 열 레이블을 각각 employee,emp hired,manager,mgr hired로 지정하시오.
+SELECT e.ename "employee",e.hiredate "emp hired",m.ename "manager",m.hiredate "mgr hired" FROM emp e,emp m WHERE m.empno=e.mgr AND e.hiredate<m.hiredate; --오라클전용
 
+SELECT e.ename "employee",e.hiredate "emp hired",m.ename "manager",m.hiredate "mgr hired" FROM emp e JOIN emp m ON e.mgr=m.empno WHERE e.hiredate<m.hiredate; --표준SQL
 
+8.사원의 이름 및 사원번호를 관리자의 이름과 관리자 번호와 함께 표시하고 각각의 열 레이블은 employee,emp#,manager,mgr#로 지정하는데 King을 포함하여 관리자가 없는 모든 사원도 표시하고 결과를 사원번호를 기준으로 정렬하시오.
+SELECT e.ename "employee",e.empno "emp#",m.ename "manager",m.empno "mgr#" FROM emp e, emp m WHERE e.mgr=m.empno(+) ORDER BY e.empno; --오라클전용
 
+SELECT e.ename "employee",e.empno "emp#",m.ename "manager",m.empno "mgr#" FROM emp e LEFT OUTER JOIN emp m ON e.mgr=m.empno ORDER BY e.empno;--표준SQL
+
+9.커미션이 책정된 사원들의 사원번호,이름,연봉,급여+커미션,급여등급,부서명을 출력하는데 각각의 컬럼명을 "사원번호","사원이름","연봉","실급여","급여등급","부서명"으로 출력하시오.
+  단,커미션이 NULL인 것은 제외하고 출력(emp,dept,salgrade)
+SELECT e.empno 사원번호,e.ename 사원이름,e.sal*12 연봉,e.sal+e.comm 실급여,s.grade 급여등급,d.dname 부서명
+FROM emp e,dept d,salgrade s 
+WHERE e.deptno=d.deptno AND e.sal BETWEEN s.losal AND s.hisal AND e.comm IS NOT NULL; --오라클전용 --JOIN 기준을 급여,실급여로 조인하라는 것을 말하지 않음 
+
+SELECT e.empno 사원번호,e.ename 사원이름,e.sal*12 연봉,e.sal+e.comm 실급여,s.grade 급여등급,d.dname 부서명 --표준SQL
+FROM emp e JOIN dept d ON e.deptno=d.deptno JOIN salgrade s 
+ON e.sal BETWEEN s.losal AND s.hisal WHERE e.comm IS NOT NULL;
+-- 3테이블 JOIN은 JOIN ON + JOIN ON형식으로 해야함
 
 
 
