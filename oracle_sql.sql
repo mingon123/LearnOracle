@@ -262,6 +262,12 @@ SELECT TRIM(LEADING 'h' FROM 'habchh') FROM dual; --왼쪽 h제거
 SELECT TRIM(TRAILING 'h' FROM 'habchh') FROM dual; --오른쪽 h전부 제거
 SELECT TRIM(BOTH 'h' FROM 'habchh') FROM dual; --양쪽 h전부 제거
 
+LTRIM(대상문자열,제거할 문자) : 문자열의 왼쪽에서 공백이나 특정 문자를 제거한 다음 값을 반환
+SELECT LTRIM('habchh','h') FROM dual;
+
+RTRIM(대상문자열,제거할 문자) : 문자열의 오른쪽에서 공백이나 특정 문자를 제거한 다음 값을 반환
+SELECT RTRIM('habchh','h') FROM dual;
+
 REPLACE(대상문자열,OLD,NEW) : 대상문자열에서 OLD문자를 NEW문자로 대체
 SELECT REPLACE('010.1234.5678','.','-') FROM dual;
 
@@ -305,7 +311,7 @@ SELECT MOD(17,2) FROM dual; --17%2는 오류
 
 날짜함수
 SYSDATE : ORACLE 서버의 현재 날짜와 시간을 반환
-SELECT SYSDATE FROM dual;
+SELECT SYSDATE FROM dual; --기본은 날짜만 표시
 
 날짜에 산술 연산자 사용
 SELECT ename,hiredate,(SYSDATE - hiredate)/7 AS WEEKS FROM emp WHERE deptno=10; --입사이후 몇주가 지났는지
@@ -418,7 +424,7 @@ SELECT TO_CHAR(sal*1.15,'9,999.9') FROM emp;
 통화표시
 SELECT TO_CHAR(1234,'$0000') FROM dual;
 지역통화 표시(원)
-SELECT TO_CHAR(1234,'L0000') FROM dual;
+SELECT TO_CHAR(1234,'L0000') FROM dual; --$제외는 시스템의 문자를 기준으로 통화표시
 
 TO_DATE -- 문자 -> 날짜
 SELECT TO_DATE('25-02-04','YYYY-MM-DD') FROM dual; --25/02/04
@@ -556,6 +562,7 @@ SELECT LOWER(ename),job,TRUNC(MONTHS_BETWEEN(SYSDATE,hiredate)/12) AS "근무연차"
 AVG() : NULL을 제외한 모든 값들의 평균을 반환. NULL값은 평균 계산에서 무시됨.
 SELECT ROUND(AVG(sal)) FROM emp;
 
+--레코드 : 데이터가 들어가 있는 행
 COUNT() : NULL을 제외한 값을 가진 모든 레코드의 수를 반환. COUNT(*)형식을 사용하면 NULL도 계산에 포함.
 
 SELECT COUNT(*) FROM emp;
@@ -563,7 +570,7 @@ SELECT COUNT(comm) FROM emp;
 
 MAX() : 레코드 내에 있는 여러값 중 가장 큰 값을 반환
 SELECT MAX(sal) FROM emp;
-SELECT MAX(ename) FROM emp; --사전순으로 가장 마지막
+SELECT MAX(ename) FROM emp; --사전순으로 가장 마지막(알파벳순)
 SELECT MAX(hiredate) FROM emp;
 
 MIN() : 레코드 내에 있는 여러값 중 가장 작은 값을 반환
@@ -602,7 +609,7 @@ SELECT deptno,ROUND(AVG(sal)) FROM emp WHERE ROUND(AVG(sal))>2000 GROUP BY deptn
 SELECT deptno,ROUND(AVG(sal)) FROM emp GROUP BY deptno HAVING ROUND(AVG(sal))>2000;
 
 HAVING절의 이용 : 알리아스 사용 X
-SELECT deptno,MAX(sal) maximum FROM emp GROUP BY deptno HAVING MAX(sal)>3000;--maximum>3000; ALIAS 안됨
+SELECT deptno,MAX(sal) maximum FROM emp GROUP BY deptno HAVING MAX(sal)>3000;--maximum>3000; WHERE절, HAVING절 - ALIAS 안됨
 
 
 [숙제]
@@ -614,12 +621,135 @@ SELECT ename,sal,deptno,hiredate FROM emp WHERE deptno=30 AND sal<=2000 AND hire
 
 3.이름에 A와 E가 있는 모든 사원의 이름을 표시하시오.
 SELECT ename FROM emp WHERE ename LIKE '%A%' OR ename LIKE '%E%';
+SELECT ename FROM emp WHERE ename LIKE '%A%' AND ename LIKE '%E%';
 
 4.사원이름 중 S가 포함되지 않은 사람들 중 부서번호가 20번인 사원들의 이름과 부서번호를 출력하시오.
 SELECT ename,deptno FROM emp WHERE ename NOT LIKE '%S%' AND deptno=20;
 
 5.모든 사원의 이름과 급여를 표시하는데 급여는 15자 길이로 왼쪽에 $기호가 채워진 형식으로 표기하고 열 레이블을 SALARY로 지정하시오.
-SELECT ename,RPAD('$'||sal, 15) SALARY FROM emp;
+SELECT ename,LPAD(sal, 15,'$') SALARY FROM emp;
+
+
+
+그룹함수 이용하기
+
+짝수 해와 홀수 해에 입사한 사원의 정보 구하기
+SELECT CASE MOD(EXTRACT(YEAR FROM hiredate),2) WHEN 0 THEN '짝수 연도'
+                                               ELSE '홀수 연도'
+       END AS YEAR,
+       COUNT(empno) AS employee_number
+FROM emp GROUP BY MOD(EXTRACT(YEAR FROM hiredate),2); --ORDER BY만 ALIAS 사용가능
+
+1981년에 입사한 사원들의 목록으로부터 분기별 입사자의 수를 구함
+SELECT TO_CHAR(hiredate,'Q') AS "Quarter",COUNT(empno) AS employee_number
+FROM emp where extract(year from HIREDATE) = 1981
+GROUP BY TO_CHAR(hiredate,'Q') ORDER BY "Quarter";
+
+[실습문제]
+1.모든 사원의 급여 최고액,최저액,총액 및 평균액을 표시하시오.열 레이블을 각각 maximum,minimum,sum 및 average로 지정하고 결과를 정수로 반올림하고 세자리 단위로 ,를 명시하시오.
+SELECT TO_CHAR(MAX(sal),'9,999') maximum, TO_CHAR(MIN(sal),'9,999') minimum, TO_CHAR(SUM(sal),'99,999') sum, TO_CHAR(ROUND(AVG(sal)),'9,999') average FROM emp; --1번방법
+SELECT TO_CHAR(MAX(sal),'9,999') maximum, TO_CHAR(MIN(sal),'9,999') minimum, TO_CHAR(SUM(sal),'99,999') sum, TO_CHAR(AVG(sal),'9,999') average FROM emp; --2번방법(ROUND 제거, format형식에 소숫점이 없어서)
+
+2.급여와 커미션을 더한 금액의 최고,최저,평균금액을 구하시오.평균금액은 소수점 첫째자리까지 표시하시오.
+SELECT MAX(sal+NVL(comm,0)) max, MIN(sal+NVL(comm,0)) min, ROUND(AVG(sal+NVL(comm,0)),1) avg FROM emp;
+
+3.업무와 업무가 동일한 사원수를 표시하시오.(업무별 사원수를 구하시오.)
+SELECT job,COUNT(*) FROM emp GROUP BY job;
+
+4.30번부서의 사원수를 구하시오.
+SELECT COUNT(*) FROM emp WHERE deptno=30; --부서번호를 명시하지 않은 경우
+SELECT deptno,COUNT(*) FROM emp WHERE deptno=30 GROUP BY deptno; --부서번호ㅡ사원수 명시
+SELECT deptno,COUNT(*) FROM emp GROUP BY deptno HAVING deptno=30; --둘다 가능, where절이 보편적(having은 그룹함수 일 때 사용)
+
+5.업무별 최고 월급을 구하고 업무,최고 월급을 출력하시오.
+SELECT job,MAX(sal) FROM emp GROUP BY job;
+
+6.20번부서의 급여 합계를 구하고,급여 합계 급액을 출력하시오.
+SELECT SUM(sal) FROM emp WHERE deptno=20;
+
+7.부서별로 지급되는 총월급에서 금액이 9,000이상을 받는 사원들의 부서번호,총월급을 출력하시오.
+SELECT deptno,SUM(sal) FROM emp GROUP BY deptno HAVING SUM(sal)>=9000;
+
+8.업무별로 가장 늦은 사번을 구하고 그 결과 내에서 사번이 79로 시작하는 결과만 출력하시오.(업무,가장 늦은 사번 출력)
+SELECT job,MAX(empno) FROM emp GROUP BY job HAVING MAX(empno) LIKE '79%'; --이게 정답
+SELECT job,MAX(empno) FROM emp WHERE empno LIKE '79%' GROUP BY job; --이것도 결과는 같음
+
+9.업무별 총월급을 출력하는데 업무가 'MANAGER'인 사원들은 제외하고 총월급이 5,000보다 많은 업무와 총월급만 출력하시오.
+SELECT job,SUM(sal) FROM emp WHERE job != 'MANAGER' GROUP BY job HAVING SUM(sal)>5000;
+
+10.업무별로 사원의 수가 4명 이상인 업무와 인원수를 출력하시오.
+SELECT job,COUNT(*) FROM emp GROUP BY job HAVING COUNT(*)>=4;
+
+
+분석함수
+
+RANK() : 순위를 표현할 때 사용하는 함수
+RANK(조건값) WITHIN GROUP (ORDER BY 조건값 컬럼명 [ASC|DESC]) : 특정 데이터의 순위 확인하기
+[주의] RANK 뒤에 나오는 데이터와 ORDER BY 뒤에 나오는 데이터는 같은 컬럼이어야 한다.
+SELECT RANK('SMITH') WITHIN GROUP (ORDER BY ename) "RANK" FROM emp;
+
+전체순위 보기 : RANK() 뒤가 WITHIN GROUP이 아니고 OVER로 바뀜
+사원들의 empno,ename,sal,급여 순위를 출력
+SELECT empno,ename,sal,RANK() OVER (ORDER BY sal) "RANK_ASC", RANK() OVER (ORDER BY sal DESC) "RANK_DESC" FROM emp; --내림차순,오름차순 정렬
+
+10부서에 속한 직원들의 사번과 이름,급여,해당 부서 내의 급여 순위를 출력
+SELECT empno,ename,sal,RANK() OVER (ORDER BY sal DESC) "RANK" FROM emp WHERE deptno=10;
+
+사원번호,이름,급여,부서번호,부서별 급여 순위를 출력
+SELECT empno,ename,sal,deptno,RANK() OVER (PARTITION BY deptno ORDER BY sal DESC) "RANK" FROM emp; --PARTITION(그룹으로 묶음)
+
+
+조인(JOIN) : 둘 이상의 테이블을 연결하여 데이터를 검색하는 방법
+            보통 둘 이상의 행들의 공통된 값 Primary Key 및 Foreign Key 값을 사용하여 조인
+
+Catesion Product(카티션 곱)
+검색하고자 했던 데이터뿐 아니라 조인에 사용된 테이블들의 모든 데이터가 반환되는 현상
+SELECT * FROM emp,dept; --emp,dept테이블이 합쳐져 중복데이터가 생김 : JOIN필요
+
+JOIN 방법
+[ORACLE 전용]
+동등 조인(equi join) : 두 테이블에 같은 컬럼이 있는 경우 사용
+조인절에 Equality Condition(=)에 의하여 조인이 이루어 짐
+SELECT emp.ename,dept.dname FROM emp,dept WHERE emp.deptno=dept.deptno; --두 테이블 모두 같은 컬럼이 있어야 함(여기선 deptno)
+
+테이블에 알리아스 부여하기
+SELECT e.ename,d.dname FROM emp e,dept d WHERE e.deptno=d.deptno; 
+
+컬럼명을 호출할 때 테이블명 또는 테이블 알리아스를 생략
+SELECT ename,d.deptno,dname FROM emp e,dept d WHERE e.deptno=d.deptno; --두 테이블에 같은 컬럼이 있는 경우는 알리아스 생략 불가 
+
+부가적인 조건 명시하기
+SELECT e.ename,d.dname FROM emp e,dept d WHERE e.deptno=d.deptno AND e.ename='ALLEN'; --AND로 조건 추가 입력
+
+SELECT e.ename,e.sal,d.dname FROM emp e,dept d WHERE e.deptno=d.deptno AND e.sal BETWEEN 3000 AND 4000;
+
+
+--비동등조인 : 동등조인이 안된다고 하더라도 같은 조건의 데이터여야 한다. emp.sal=salgrade로 대응되기 때문에 가능
+비동등 조인(no equi join)
+테이블의 어떤 column도 join할 테이블의 column에 일치하지 않을 때 사용하고 조인 조건은 동등(=)이외의 연산자를 갖음(between and,is null,in)
+
+사원이름,급여,급여등급 구하기(emp,salgrade 테이블 이용)
+SELECT e.ename,e.sal,s.grade FROM emp e,salgrade s WHERE e.sal BETWEEN s.losal AND s.hisal;
+
+
+SELF JOIN
+사원 이름과 해당 사원의 관리자 이름 구하기(관리자가 없는 사원 제외)
+SELECT e.ename 사원이름,m.ename 관리자이름 FROM emp e,emp m WHERE e.mgr=m.empno; --e:사원정보,m:관리자번호
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

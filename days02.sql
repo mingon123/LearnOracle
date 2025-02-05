@@ -50,10 +50,16 @@ SELECT TRIM(LEADING 'h' FROM 'habchh') FROM dual; --왼쪽 h제거
 SELECT TRIM(TRAILING 'h' FROM 'habchh') FROM dual; --오른쪽 h전부 제거
 SELECT TRIM(BOTH 'h' FROM 'habchh') FROM dual; --양쪽 h전부 제거
 
+LTRIM(대상문자열,제거할 문자) : 문자열의 왼쪽에서 공백이나 특정 문자를 제거한 다음 값을 반환
+SELECT LTRIM('habchh','h') FROM dual;
+
+RTRIM(대상문자열,제거할 문자) : 문자열의 오른쪽에서 공백이나 특정 문자를 제거한 다음 값을 반환
+SELECT RTRIM('habchh','h') FROM dual;
+
 REPLACE(대상문자열,OLD,NEW) : 대상문자열에서 OLD문자를 NEW문자로 대체
 SELECT REPLACE('010.1234.5678','.','-') FROM dual;
 
-함수 중첩 
+함수 중첩 가능
 SELECT ename,LOWER(SUBSTR(ename,1,3)) FROM emp;
 
 [실습문제]
@@ -93,7 +99,7 @@ SELECT MOD(17,2) FROM dual; --17%2는 오류
 
 날짜함수
 SYSDATE : ORACLE 서버의 현재 날짜와 시간을 반환
-SELECT SYSDATE FROM dual;
+SELECT SYSDATE FROM dual; --기본은 날짜만 표시
 
 날짜에 산술 연산자 사용
 SELECT ename,hiredate,(SYSDATE - hiredate)/7 AS WEEKS FROM emp WHERE deptno=10; --입사이후 몇주가 지났는지
@@ -206,7 +212,7 @@ SELECT TO_CHAR(sal*1.15,'9,999.9') FROM emp;
 통화표시
 SELECT TO_CHAR(1234,'$0000') FROM dual;
 지역통화 표시(원)
-SELECT TO_CHAR(1234,'L0000') FROM dual;
+SELECT TO_CHAR(1234,'L0000') FROM dual; --$제외는 시스템의 문자를 기준을 통화표시
 
 TO_DATE -- 문자 -> 날짜
 SELECT TO_DATE('25-02-04','YYYY-MM-DD') FROM dual; --25/02/04
@@ -344,6 +350,7 @@ SELECT LOWER(ename),job,TRUNC(MONTHS_BETWEEN(SYSDATE,hiredate)/12) AS "근무연차"
 AVG() : NULL을 제외한 모든 값들의 평균을 반환. NULL값은 평균 계산에서 무시됨.
 SELECT ROUND(AVG(sal)) FROM emp;
 
+--레코드 : 데이터가 들어가 있는 행
 COUNT() : NULL을 제외한 값을 가진 모든 레코드의 수를 반환. COUNT(*)형식을 사용하면 NULL도 계산에 포함.
 
 SELECT COUNT(*) FROM emp;
@@ -351,7 +358,7 @@ SELECT COUNT(comm) FROM emp;
 
 MAX() : 레코드 내에 있는 여러값 중 가장 큰 값을 반환
 SELECT MAX(sal) FROM emp;
-SELECT MAX(ename) FROM emp; --사전순으로 가장 마지막
+SELECT MAX(ename) FROM emp; --사전순으로 가장 마지막(알파벳순)
 SELECT MAX(hiredate) FROM emp;
 
 MIN() : 레코드 내에 있는 여러값 중 가장 작은 값을 반환
@@ -362,7 +369,7 @@ SELECT MIN(hiredate) FROM emp;
 SUM() : 레코드들이 포함하고 있는 모든 값을 더하여 반환
 SELECT SUM(sal) FROM emp;
 
-SELECT MAX(sal),MIN(sal),ROUND(AVG(sal)),SUM(sal) FROM emp;
+SELECT MAX(sal),MIN(sal),ROUND(AVG(sal)),SUM(sal) FROM emp; --여러 그룹함수를 하나의 행으로 연산 가능
 SELECT MAX(sal),MIN(sal),ROUND(AVG(sal)),SUM(sal) FROM emp WHERE deptno = 10;
 SELECT COUNT(*) FROM emp WHERE deptno=20; --사원수라고도 할 수 있음
 SELECT COUNT(empno) FROM emp WHERE deptno=30; --null값이 있는 컬럼은 제대로 안나옴
@@ -390,7 +397,7 @@ SELECT deptno,ROUND(AVG(sal)) FROM emp WHERE ROUND(AVG(sal))>2000 GROUP BY deptn
 SELECT deptno,ROUND(AVG(sal)) FROM emp GROUP BY deptno HAVING ROUND(AVG(sal))>2000;
 
 HAVING절의 이용 : 알리아스 사용 X
-SELECT deptno,MAX(sal) maximum FROM emp GROUP BY deptno HAVING MAX(sal)>3000;--maximum>3000; ALIAS 안됨
+SELECT deptno,MAX(sal) maximum FROM emp GROUP BY deptno HAVING MAX(sal)>3000;--maximum>3000; WHERE절, HAVING절 - ALIAS 안됨
 
 
 [숙제]
@@ -402,11 +409,16 @@ SELECT ename,sal,deptno,hiredate FROM emp WHERE deptno=30 AND sal<=2000 AND hire
 
 3.이름에 A와 E가 있는 모든 사원의 이름을 표시하시오.
 SELECT ename FROM emp WHERE ename LIKE '%A%' OR ename LIKE '%E%';
+SELECT ename FROM emp WHERE ename LIKE '%A%' AND ename LIKE '%E%';
 
 4.사원이름 중 S가 포함되지 않은 사람들 중 부서번호가 20번인 사원들의 이름과 부서번호를 출력하시오.
 SELECT ename,deptno FROM emp WHERE ename NOT LIKE '%S%' AND deptno=20;
 
 5.모든 사원의 이름과 급여를 표시하는데 급여는 15자 길이로 왼쪽에 $기호가 채워진 형식으로 표기하고 열 레이블을 SALARY로 지정하시오.
-SELECT ename,RPAD('$'||sal, 15) SALARY FROM emp;
+SELECT ename,LPAD(sal, 15,'$') SALARY FROM emp;
+
+
+
+
 
 
