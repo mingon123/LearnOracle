@@ -773,7 +773,7 @@ SELECT e.ename name,m.ename manager_name FROM emp e JOIN emp m ON e.mgr = m.empn
 
 
 외부 조인(OUTER JOIN)
-누락된 행의 방향 표시 --한눈에 보기 쉬워 좋음
+누락된 행의 방향 표시 --null값이 필요하면 사용
 SELECT DISTINCT(e.deptno),d.deptno FROM emp e RIGHT OUTER JOIN dept d ON e.deptno=d.deptno; --_1로 누락된거 확인하고 RIGHT OUTER 추가하여 빈 컬럼도 추가
 
 사원 이름과 해당 사원의 관리자 이름 구하기(관리자가 없는 사원도 표시)
