@@ -178,17 +178,17 @@ VALUES (8003,'ANNIE','CLERK',7698,'99/06/01',1300,null,10);
 
 날짜의 삽입
 INSERT INTO emp(empno,ename,job,mgr,hiredate,sal,comm,deptno)
-VALUES (8004,'MICHAEL','CLERK',7698,TO_DATE('99/07/01','YY/MM/DD'),1800,null,30);
+VALUES (8004,'MICHAEL','CLERK',7698,TO_DATE('99/07/01','YY/MM/DD'),1800,null,30); --둘 중 선택
 
 
 UPDATE문 : 행 단위로 데이터 갱신
 
 UPDATE emp SET mgr=7900 WHERE empno=8000; --empno:primary key라 안바꿈
-UPDATE emp SET ename='MARIA',sal=2500,comm=500 WHERE empno=8000;
+UPDATE emp SET ename='MARIA',sal=2500,comm=500 WHERE empno=8000; --나열된 부분만 변경
 
 [주의]WHERE절을 명시하지 않으면 전체행의 데이터가 변경
 UPDATE emp SET ename='BLUE';
-
+--ROLLBACK; 사용하여 돌리기가능, but 자바에서 한 경우 ROLLBACK 불가. DDL,DML문장 실행 전까지는 되돌리기 가능
 
 DELETE문 : 행을 삭제
 
@@ -236,7 +236,7 @@ SELECT * FROM user_catalog;
 CREATE TABLE employee(
  empno number(6),
  name varchar2(30) not null,
- salary number(8,2), --양수8자리,소숫점2자리
+ salary number(8,2), --정수8자리,소숫점2자리
  hire_date date default SYSDATE,
  CONSTRAINT employee_pk primary key (empno) 
 );
@@ -364,27 +364,32 @@ SELECT SUM(score) FROM student;
 [실습문제]
 1.SMITH의 직속상사(mgr)의 이름과 부서명,근무지역을 출력하시오.
 SELECT e.ename,d.dname,d.loc FROM emp e,dept d WHERE e.deptno=d.deptno 
-AND mgr IN(SELECT m.mgr FROM emp e,emp m WHERE e.mgr=m.empno 
-AND e.ename='SMITH');
+AND mgr IN(SELECT mgr FROM emp WHERE ename='SMITH');
+
+SELECT e.ename,d.dname,d.loc FROM emp e JOIN dept d USING(deptno)
+WHERE e.empno IN(SELECT mgr FROM emp WHERE ename='SMITH');
 
 2.ALLEN보다 급여를 많이 받는 사람 중에서 입사일이 가장 빠른 사원과 동일한 날짜에 입사한 사원의 입사일,급여를 출력하시오
-SELECT hiredate,sal FROM emp 
-WHERE sal>(SELECT sal FROM emp WHERE ename='ALLEN') 
-AND hiredate=(SELECT MIN(hiredate) FROM emp);
+SELECT ename,hiredate,sal FROM emp 
+WHERE hiredate=(SELECT MIN(hiredate) FROM emp 
+                WHERE sal>all(SELECT sal FROM emp WHERE ename='ALLEN'));
+ 
 
 3.10번 부서에서 근무하는 사원들의 부서번호,부서이름,사원이름,월급,급여등급을 출력하시오.
 [ORACLE 전용]
-SELECT e.deptno,d.dname,e.ename,e.sal,s.grade FROM emp e,dept d,salgrade s 
-WHERE e.deptno=d.deptno AND e.sal BETWEEN s.losal AND s.hisal 
+SELECT e.deptno,d.dname,e.ename,e.sal,s.grade 
+FROM emp e,dept d,salgrade s 
+WHERE e.deptno=d.deptno 
+AND e.sal BETWEEN s.losal AND s.hisal 
 AND e.deptno=10;
 
 [표준SQL]
-
-
-
-
-
-
+SELECT e.deptno,d.dname,e.ename,e.sal,s.grade 
+FROM emp e INNER JOIN dept d --INNER 생략가능 
+ON e.deptno=d.deptno
+INNER JOIN salgrade s 
+ON e.sal BETWEEN s.losal AND s.hisal 
+WHERE e.deptno=10;
 
 
 
