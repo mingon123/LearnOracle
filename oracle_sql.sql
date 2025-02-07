@@ -1399,13 +1399,3 @@ SQL> drop user user02 CASCADE;
 
 
 
-
-
-
-
-
-
-
-
-
-
