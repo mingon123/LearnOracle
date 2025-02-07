@@ -1388,6 +1388,30 @@ SQL> drop user user02 CASCADE;
 
 
 
+[숙제]내가 문제 만들고 풀어보기
+JOIN 3문제
+1.업무가 SALESMAN인 사원번호,사원이름,부서명,지역 출력
+SELECT e.empno,e.ename,d.dname,d.loc FROM emp e,dept d WHERE e.deptno=d.deptno AND e.job='SALESMAN';
+
+2.관리자보다 월급이 많은 사원의 이름,급여,커미션 출력
+SELECT e.ename,e.sal,NVL(e.comm,0) comm1 FROM emp e,emp m WHERE e.mgr=m.empno AND e.sal>m.sal;
+
+3.연봉((sal+comm)*12)이 가장 적은 사원의 사원이름,업무,월급,커미션,연봉,등급 출력
+SELECT e.ename,e.job,NVL(e.comm,0) 커미션,(e.sal+NVL(e.comm,0))*12 연봉, s.grade
+FROM emp e,salgrade s WHERE e.sal BETWEEN s.losal AND s.hisal
+AND (e.sal+NVL(e.comm,0))*12=(SELECT MIN((sal+NVL(comm,0))*12) FROM emp);
+
+
+서브쿼리 3문제
+1.가장 높은 월급을 받는 사람의 사원번호,이름 출력
+SELECT empno,ename FROM emp WHERE sal=(SELECT MAX(sal) FROM emp);
+
+2.부서별 급여가 평균이상인 사람의 수를 출력
+SELECT COUNT(*) FROM emp WHERE sal>=(SELECT AVG(sal) FROM emp);
+
+3.월급이 가장 낮은 사람과 입사일이 같은 사람을 출력
+SELECT empno,ename,hiredate,sal FROM emp WHERE sal=(SELECT MIN(sal) FROM emp);
+
 
 
 

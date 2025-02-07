@@ -1,0 +1,15 @@
+[숙제]
+1.emp테이블의 업무(job)를 중복되지 않게 표시하시오
+SELECT DISTINCT job FROM emp;
+
+2.업무가 SALESMAN 또는 MANAGER 이면서 급여가 $1,600,%2975,$2850이 아닌 모든 사원의 이름,업무 및 급여를 표시하시오.
+SELECT ename,job,sal FROM emp WHERE job IN ('SALESMAN','MANAGER') AND sal NOT IN(1600,2975,2850);
+
+3.업무명에 MAN 이 포함되어 있고, 급여를 $1,000~$3,000사이로 받는 사원의 이름,급여,업무를 출력하시오.
+SELECT ename,sal,job FROM emp WHERE job LIKE '%MAN%' AND sal BETWEEN 1000 AND 3000;
+
+4.이름이 S로 끝나는 사원들 중에서 30번 부서에 근무하는 사원의 이름,급여,부서번호를 출력하시오.
+SELECT ename,sal,empno FROM emp WHERE ename LIKE '%S' AND deptno=30;
+
+5.커미션 계약을 맺은 모든 사원의 이름,급여,커미션을 출력하는데 커미션을 기준으로 내림차순 정렬하시오.
+SELECT ename,sal,comm FROM emp WHERE comm IS NOT NULL ORDER BY comm DESC ;
