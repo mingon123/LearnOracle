@@ -38,7 +38,7 @@ ROLLBACK;
 
 WITH CHECK OPTION : 조건 컬럼값을 변경하지 못하게 하는 옵션
 
-CREATE OR REPLACE VIEW emp30_view AS
+REATE OR REPLACE VIEW emp30_view AS
 SELECT empno,ename,deptno FROM emp WHERE deptno=30
 WITH CHECK OPTION;
 
@@ -67,6 +67,8 @@ UPDATE emp20_view SET name='DAVID' WHERE id_number=7902; --READ ONLY이기 때문에 
 뷰 삭제
 DROP VIEW emp10_view;
 
+
+
 시퀀스(SEQUENCE) : 유일한 값을 생성해주는 오라클 객체
 
 CREATE SEQUENCE test_seq
@@ -82,6 +84,7 @@ nextval : 현재 시퀀스 값의 다음 값 반환
 --값 확인
 SELECT test_seq.nextval FROM dual; --시퀀스 값 생성 및 조회
 SELECT test_seq.currval FROM dual; --시퀀스 값 조회, nextval없이 currval은 오류 
+
 
 
 인덱스(INDEX) : 인덱스는 데이터 검색을 빨리 하기 위해 사용한다.
@@ -106,6 +109,7 @@ CREATE INDEX deptno_idx ON emp(deptno);
 1)테이블이 작은 경우
 2)열이 질의의 조건으로 자주 사용되지 않는 경우
 3)테이블이 자주 갱신되는 경우
+
 
 
 동의어 : 객체의 다른 이름. 객체 액세스를 단순화
@@ -140,11 +144,15 @@ SQL>GRANT resource,connect To user02; <-- 접속 권한 부여
 SQL> conn sys/1234 as sysdba
 SQL> ALTER USER user02 identified by 5678;
 
+
 사용자 삭제
+
+[주의]계정이 접속된 상태에서는 삭제가 불가능함
 SQL> DROP USER user02; --테이블에 내용이 있어서 삭제 불가
 
 USER02 유저가 객체를 소유하고 있을 경우에는 CASCADE 옵션을 추가해서 삭제
-SQL> drop user user02 CASCADE; --여기선 안되는데 일반적으로는 가능
+SQL> drop user user02 CASCADE;
+
 
 
 
@@ -246,7 +254,7 @@ declare
 begin
  nested1 := nested_test('A','B','C','D');
  
- --QNFRK
+ --불가
  --NESTED1(5) := 'E'; --한번 값을 넣으면 크기는 더 늘어나지 않음, 배열과 똑같음
 
  dbms_output.put_line(nested1(2)); --B 출력
