@@ -151,7 +151,7 @@ SQL> ALTER USER user02 identified by 5678;
 SQL> DROP USER user02; --테이블에 내용이 있어서 삭제 불가
 
 USER02 유저가 객체를 소유하고 있을 경우에는 CASCADE 옵션을 추가해서 삭제
-SQL> drop user user02 CASCADE;
+SQL> drop user user02 CASCADE; --Oracle에 접속되어있다면 불가
 
 
 
