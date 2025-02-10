@@ -364,7 +364,8 @@ WHERE type='FUNCTION' AND name='TAX';
 
 [실습문제]
 1.두 숫자를 제공하면 덧셈을 해서 결과값을 반환하는 함수(add_num)를 정의하시오.
-create or replace function add_num(num1 integer,num2 integer) --number도 가능
+create or replace function add_num(num1 integer,
+                                   num2 integer) --number도 가능
  return integer
 is
 begin
@@ -562,7 +563,7 @@ is
  --%rowtype으로 데이터 타입이 지정되어 있는 emp의 하나의 행이 가지는 모든 컬럼의 데이터 타입을 가져옴
  e_emp emp%rowtype;
 begin
- SELECT empno,ename,sal
+ SELECT empno,ename,sal INTO e_emp.empno,e_emp.ename,e_emp.sal
  FROM emp WHERE TO_CHAR(hiredate,'YYYY')=p_year;
  
  dbms_output.put_line(e_emp.empno || ' ' || e_emp.ename || ' ' || e_emp.sal);
@@ -574,6 +575,7 @@ exec info_hiredate('1980');
 exec_info_giredate('1981'); --fetch사용해야함
 
 
+--커서 이용하기
 입력한 입사연도에 입사한 사원의 사원번호와 사원명을 출력(커서 이용하기)
 create or replace procedure info_hiredate(p_year in varchar2)
 is
