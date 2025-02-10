@@ -119,7 +119,8 @@ WHERE type='FUNCTION' AND name='TAX';
 
 [실습문제]
 1.두 숫자를 제공하면 덧셈을 해서 결과값을 반환하는 함수(add_num)를 정의하시오.
-create or replace function add_num(num1 integer,num2 integer) --number도 가능
+create or replace function add_num(num1 integer,
+                                   num2 integer) --number도 가능
  return integer
 is
 begin
@@ -249,6 +250,7 @@ end;
 
 exec hello_world('Korea');
 
+
 작성된 Stored Procedure 확인
 SELECT object_name,object_type
 FROM user_objects
@@ -316,7 +318,7 @@ is
  --%rowtype으로 데이터 타입이 지정되어 있는 emp의 하나의 행이 가지는 모든 컬럼의 데이터 타입을 가져옴
  e_emp emp%rowtype;
 begin
- SELECT empno,ename,sal
+ SELECT empno,ename,sal INTO e_emp.empno,e_emp.ename,e_emp.sal
  FROM emp WHERE TO_CHAR(hiredate,'YYYY')=p_year;
  
  dbms_output.put_line(e_emp.empno || ' ' || e_emp.ename || ' ' || e_emp.sal);
@@ -328,6 +330,7 @@ exec info_hiredate('1980');
 exec_info_giredate('1981'); --fetch사용해야함
 
 
+--커서 이용하기
 입력한 입사연도에 입사한 사원의 사원번호와 사원명을 출력(커서 이용하기)
 create or replace procedure info_hiredate(p_year in varchar2)
 is
@@ -407,18 +410,49 @@ begin
   ROLLBACK;
 end;
 
-exec change_book_info(1,'자바의 정석','자바 천국',10000);
+exec change_book_info(1,'자바의 정석','자바 천국',15000); --같은데이터면 변경,없으면추가
 
 
+[실습문제]
+1.업무를 입력하여 해당 업무를 수행하는 사원들의 사원번호,이름,급여,업무를 출력(job_info)
+create or replace procedure job_info(p_job emp.job%type)
+is
+ cursor emp_cur is
+ SELECT empno,ename,sal,job
+ FROM emp WHERE job = p_job;
 
+ e_emp emp%rowtype;
+begin
+ open emp_cur;
+ loop
+  fetch emp_cur into e_emp.empno,e_emp.ename,e_emp.sal,e_emp.job;
+  exit when emp_cur%notfound;
+  dbms_output.put_line(e_emp.empno || ',' || e_emp.ename || ',' || e_emp.sal || ',' || e_emp.job);
+ end loop;
+ close emp_cur;
+end;
 
+exec job_info('MANAGER'); --대문자 필수
 
+2.사원번호와 새 업무를 입력하면 emp테이블의 해당 사원의 업무를 갱신할 수 있는 프로시저를 작성
+create or replace procedure change_job(e_no emp.empno%type,
+                                       e_job emp.job%type)
+is
+begin
+ UPDATE emp SET job=e_job WHERE empno=e_no;
+ COMMIT;
+ exception when others then
+  dbms_output.put_line(e_no || ' update is failed ');
+  ROLLBACK;
+end;
 
+exec change_job(7369,'DRIVER');
 
+3.사원번호를 입력하면 근무지를 구하는 함수(find_loc)
+create or replace function(emp_no empno%type)
+ 
 
-
-
-
+4.부서 이름을 입력하면 해당 부서의 사원에 대해 급여가 많은 순으로 정보를 제공 프로시저(emp_salary_info). 출력 컬럼->empno,ename,sal
 
 
 

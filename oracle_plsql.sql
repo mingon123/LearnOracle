@@ -697,6 +697,12 @@ exec change_job(7369,'DRIVER');
 create or replace function(emp_no empno%type)
  
 
-4.부서 이름을 입력하면 해당 부서의 사원에 대해 급여가 많은 순으로 정보를 제공 프로시저(emp_salary_info). 출력 컬럼-
+4.부서 이름을 입력하면 해당 부서의 사원에 대해 급여가 많은 순으로 정보를 제공 프로시저(emp_salary_info). 출력 컬럼->empno,ename,sal
+
+
+
+
+
+
 
 
