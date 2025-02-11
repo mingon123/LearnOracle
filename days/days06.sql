@@ -434,6 +434,7 @@ end;
 
 exec job_info('MANAGER'); --대문자 필수
 
+
 2.사원번호와 새 업무를 입력하면 emp테이블의 해당 사원의 업무를 갱신할 수 있는 프로시저를 작성
 create or replace procedure change_job(e_no emp.empno%type,
                                        e_job emp.job%type)
@@ -448,14 +449,44 @@ end;
 
 exec change_job(7369,'DRIVER');
 
+
 3.사원번호를 입력하면 근무지를 구하는 함수(find_loc)
-create or replace function(emp_no empno%type)
- 
+create or replace function find_loc(emp_no number)
+ return varchar2
+is
+ dept_loc varchar2(14);
+begin
+ SELECT loc INTO dept_loc
+ FROM dept WHERE deptno = (SELECT deptno FROM emp WHERE empno=emp_no);
+ return dept_loc;
+end;
+
+SELECT FIND_LOC(7698) FROM dual;
+SELECT empno,ename,FIND_LOC(empno) FROM emp;
+
 
 4.부서 이름을 입력하면 해당 부서의 사원에 대해 급여가 많은 순으로 정보를 제공 프로시저(emp_salary_info). 출력 컬럼->empno,ename,sal
+create or replace procedure emp_salary_info(p_dept dept.dname%type)
+is
+ cursor emp_cur is
+ SELECT empno,ename,sal
+ FROM emp e JOIN dept d
+ ON e.deptno=d.deptno
+ WHERE d.dname = UPPER(p_dept)
+ ORDER BY sal DESC;
 
+ e_emp emp%rowtype;
+begin
+ open emp_cur;
+  loop
+   fetch emp_cur into e_emp.empno,e_emp.ename,e_emp.sal;
+   exit when emp_cur%notfound;
+   dbms_output.put_line(e_emp.empno || ' ' || e_emp.ename || ' ' || e_emp.sal);
+  end loop;
+ close emp_cur;
+end;
 
-
+exec emp_salary_info('SALES');
 
 
 
